@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.s": "arm",
+        "vector": "cpp",
+        "utility": "cpp"
+    },
+    "cortex-debug.variableUseNaturalFormat": true
+}
