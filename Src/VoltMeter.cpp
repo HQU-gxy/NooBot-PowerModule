@@ -7,7 +7,7 @@ namespace VoltMeter
         extern ADC_HandleTypeDef hadc;
     }
 
-    constexpr float MULTIPLIER = 3.3f * 10 / (1 << 12); // 12-bit ADC
+    constexpr float MULTIPLIER = 3.3f * 10.43 / (1 << 12); // 12-bit ADC
 
     // Sample many times to get a good average
     constexpr auto N_SAMPLES = 10;

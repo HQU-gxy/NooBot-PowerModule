@@ -7,10 +7,10 @@ static const LED::BlinkPattern startupPattern = {
     .oneshot = true,
     .pattern = {
         {0b0000, 100},
-        {0b0001, 300},
-        {0b0011, 300},
-        {0b0111, 300},
-        {0b1111, 300},
+        {0b0001, 350},
+        {0b0011, 350},
+        {0b0111, 350},
+        {0b1111, 350},
     },
 };
 
@@ -25,10 +25,10 @@ static const LED::BlinkPattern confirmShutdownPattern = {
 static const LED::BlinkPattern shutdownPattern = {
     .oneshot = true,
     .pattern = {
-        {0b1111, 300},
-        {0b0111, 300},
-        {0b0011, 300},
-        {0b0001, 300},
+        {0b1111, 350},
+        {0b0111, 350},
+        {0b0011, 350},
+        {0b0001, 350},
         {0b0000, 100},
     },
 };
@@ -210,6 +210,10 @@ void app_main()
           auto batteryValuePattern = voltageToPattern(VoltMeter::getVoltage());
           LED::setCurrentPattern(batteryValuePattern);
         }
+        else
+        {
+          LED::setCurrentPattern(confirmShutdownPattern);
+        }
 
         startedPressing = false;
       }
@@ -220,5 +224,17 @@ void app_main()
     LED::deinit();
     VoltMeter::deinit();
     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+  }
+}
+
+void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
+{
+
+  UNUSED(AddrMatchCode);
+
+  if (TransferDirection == I2C_DIRECTION_TRANSMIT)
+  {
+    auto battLevel = getBatteryPercentage(VoltMeter::getVoltage());
+    HAL_I2C_Slave_Transmit_IT(hi2c, &battLevel, sizeof(battLevel));
   }
 }
