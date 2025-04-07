@@ -16,12 +16,18 @@ namespace LED
     static uint32_t lastPatternTime = 0;
     static uint16_t patternIndex = 0;
 
+    /**
+     * @brief Initialize the LED timer.
+     */
     void init()
     {
         // The 1kHz timer for LED blinking
         HAL_TIM_Base_Start_IT(&htim14);
     }
 
+    /**
+     * @brief Deinitialize the LED timer and turn off all LEDs.
+     */
     void deinit()
     {
         HAL_TIM_Base_Stop_IT(&htim14);
@@ -31,23 +37,37 @@ namespace LED
         }
     }
 
+    /**
+     * @brief Set the current blinking pattern.
+     * 
+     * @param pattern The blinking pattern to set.
+     */
     void setCurrentPattern(const BlinkPattern &pattern)
     {
         currentPattern = pattern;
     }
 
+    /**
+     * @brief Reset the pattern index to 0.
+     */
     void resetIndex()
     {
         patternIndex = 0;
     }
 
+    /**
+     * @brief Handle the LED blinking logic.
+     * 
+     * @note This function is called in the timer interrupt callback.
+     */
     void handleBlink()
     {
-        // Caution: All LEDs are connected to GPIOA
+        // No pattern set, do nothing
         if (currentPattern.pattern.size() == 0)
         {
             return;
         }
+        // Reset the index if it is out of bounds
         if (patternIndex >= currentPattern.pattern.size())
         {
             resetIndex();
@@ -55,6 +75,7 @@ namespace LED
 
         auto ledMask = currentPattern.pattern[patternIndex].first;
         auto duration = currentPattern.pattern[patternIndex].second;
+        // Caution: All LEDs are connected to GPIOA
         for (auto i = 0; i < N_LEDS; i++)
         {
             HAL_GPIO_WritePin(GPIOA, ledPins[i], (ledMask & (1 << i)) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -80,7 +101,11 @@ namespace LED
 
 } // namespace LED
 
-// A timer with a period of 1 millisecond is used to blink the LEDs
+/**
+ * @brief The callback function for the timer interrupt.
+ * 
+ * @param htim The HAL timer handle.
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     UNUSED(htim);

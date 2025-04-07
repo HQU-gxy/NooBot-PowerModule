@@ -33,16 +33,32 @@ static const LED::BlinkPattern shutdownPattern = {
     },
 };
 
+/**
+ * @brief Check if the button is pressed.
+ *
+ * @return true if the button is pressed
+ */
 inline bool buttonPressed()
 {
   return !HAL_GPIO_ReadPin(Button_GPIO_Port, Button_Pin);
 }
 
+/**
+ * @brief Enable or disable the power to the device.
+ *
+ * @param enable true to enable power, false to disable.
+ */
 inline void enablePower(bool enable)
 {
   HAL_GPIO_WritePin(PWREN_GPIO_Port, PWREN_Pin, enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
+/**
+ * @brief Get the battery percentage based on the voltage.
+ *
+ * @param voltage The battery voltage in volts.
+ * @return The battery percentage (0-100).
+ */
 inline uint8_t getBatteryPercentage(float voltage)
 {
   // 6S 3.7V LiPo battery
@@ -58,6 +74,12 @@ inline uint8_t getBatteryPercentage(float voltage)
     return static_cast<uint8_t>((voltage - N_CELLS * MIN_VOLTAGE) / (N_CELLS * (MAX_VOLTAGE - MIN_VOLTAGE)) * 100);
 }
 
+/**
+ * @brief Build a LED blinking pattern based on the battery voltage.
+ *
+ * @param voltage The battery voltage in volts.
+ * @return The LED blinking pattern.
+ */
 inline LED::BlinkPattern voltageToPattern(float voltage)
 {
   auto percentage = getBatteryPercentage(voltage);
@@ -227,6 +249,13 @@ void app_main()
   }
 }
 
+/**
+ * @brief This function is called when the I2C address is matched.
+ *
+ * @param hi2c The HAL I2C handle.
+ * @param TransferDirection The transfer direction (transmit or receive).
+ * @param AddrMatchCode The address match code.
+ */
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
 

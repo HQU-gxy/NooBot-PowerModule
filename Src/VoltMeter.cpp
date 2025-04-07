@@ -13,16 +13,27 @@ namespace VoltMeter
     constexpr auto N_SAMPLES = 10;
     static uint16_t adcBuf[N_SAMPLES]{0};
 
+    /**
+     * @brief Start the ADC in interrupt mode.
+     */
     void init()
     {
         HAL_ADC_Start_IT(&hadc);
     }
 
+    /**
+     * @brief Stop the ADC 
+     */
     void deinit()
     {
         HAL_ADC_Stop_IT(&hadc);
     }
 
+    /**
+     * @brief Get the average voltage from the ADC buffer.
+     * 
+     * @return The average voltage in volts.
+     */
     float getVoltage()
     {
         uint32_t temp = 0;
@@ -35,6 +46,11 @@ namespace VoltMeter
     }
 } // namespace VoltMeter
 
+/**
+ * @brief The ADC conversion complete callback.
+ * 
+ * @param hadc The HAL ADC handle.
+ */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
     UNUSED(hadc);
