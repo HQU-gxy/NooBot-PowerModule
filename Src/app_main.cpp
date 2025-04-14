@@ -125,6 +125,11 @@ inline LED::BlinkPattern voltageToPattern(float voltage)
   return result;
 }
 
+extern "C"
+{
+  extern I2C_HandleTypeDef hi2c1;
+}
+
 void app_main()
 {
   static uint32_t startPressTime;
@@ -137,6 +142,7 @@ void app_main()
   {
     LED::init();
     VoltMeter::init();
+    HAL_I2C_EnableListen_IT(&hi2c1); // Enable I2C listen mode
 
     bool running = false;
 
@@ -243,6 +249,7 @@ void app_main()
       HAL_Delay(100);
     }
 
+    HAL_I2C_DisableListen_IT(&hi2c1); // Disable I2C listen mode
     LED::deinit();
     VoltMeter::deinit();
     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
@@ -259,11 +266,24 @@ void app_main()
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode)
 {
 
-  UNUSED(AddrMatchCode);
+  if (AddrMatchCode != hi2c->Init.OwnAddress1)
+  {
+    return; // Ignore if the address doesn't match
+  }
 
-  if (TransferDirection == I2C_DIRECTION_TRANSMIT)
+  if (TransferDirection == I2C_DIRECTION_RECEIVE)
   {
     auto battLevel = getBatteryPercentage(VoltMeter::getVoltage());
-    HAL_I2C_Slave_Transmit_IT(hi2c, &battLevel, sizeof(battLevel));
+    HAL_I2C_Slave_Seq_Transmit_IT(hi2c, &battLevel, sizeof(battLevel), I2C_LAST_FRAME);
   }
+}
+
+/**
+ * @brief This function is called when the I2C listen mode is complete.
+ *
+ * @param hi2c The HAL I2C handle.
+ */
+void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+  HAL_I2C_EnableListen_IT(hi2c);
 }
